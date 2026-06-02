@@ -136,63 +136,6 @@ void loop() {
 }
 
 
-// Display Updaten
-void updateDisplay() {
-
-  u8g2.firstPage();
-  do {
-
-    u8g2.setFontMode(1);
-    u8g2.setBitmapMode(1);
-
-    // Outline
-    u8g2.drawLine(1, 63, 126, 63);
-    u8g2.drawLine(0, 0, 127, 0);
-    u8g2.drawLine(127, 1, 127, 63);
-    u8g2.drawLine(0, 1, 0, 63);
-    u8g2.drawLine(94, 1, 94, 22);
-    u8g2.drawLine(1, 23, 126, 23);
-
-    u8g2.drawXBM(103, rail_arrow, 3, 5, image_Zeil_Pfeil_bits);
-    u8g2.drawXBM(2, 27, 99, 34, image_Strecke_bits);
-
-    u8g2.setFont(u8g2_font_4x6_tr);
-
-    // Update Text if Active
-    if (triggerActive) {
-      u8g2.drawStr(64, 7, sensor_0_text);
-      u8g2.drawStr(64, 14, sensor_1_text);
-      u8g2.drawStr(64, 21, sensor_2_text);
-    }
-
-    // Always Update Numbers
-    char buf[8];
-
-    u8g2.drawStr(2, 21, "Sensor 2:");
-    u8g2.drawStr(2, 7, "Sensor 0:");
-    u8g2.drawStr(2, 14, "Sensor 1:");
-
-
-    itoa(sensor_2_wert, buf, 10);
-    u8g2.drawStr(38, 21, buf);
-
-    itoa(sensor_1_wert, buf, 10);
-    u8g2.drawStr(38, 14, buf);
-
-    itoa(sensor_0_wert, buf, 10);
-    u8g2.drawStr(38, 7, buf);
-
-    u8g2.drawXBM(12, 37, 7, 6, image_Sensor_Optisch_bits);
-    u8g2.drawXBM(56, 2, 5, 19, image_Pfeile_bits);
-
-    // Ausrufezeichen anzeigen / nicht anzeigen
-    if (exclamationState) {
-      u8g2.drawXBM(20, 34, 2, 8, image_Aktion_erkannt_bits);
-    }
-
-  } while (u8g2.nextPage());
-}
-
 // Auswertung
 void evaluation() {
   // Werte Auslesen
@@ -283,4 +226,61 @@ void trigger_switch(int pin) {
   Serial.println("INFO - Weiche wurde erfolgreich geschaltet - Pin:");
   Serial.println(pin);
   Serial.println("");
+}
+
+// Display Updaten
+void updateDisplay() {
+
+  u8g2.firstPage();
+  do {
+
+    u8g2.setFontMode(1);
+    u8g2.setBitmapMode(1);
+
+    // Outline
+    u8g2.drawLine(1, 63, 126, 63);
+    u8g2.drawLine(0, 0, 127, 0);
+    u8g2.drawLine(127, 1, 127, 63);
+    u8g2.drawLine(0, 1, 0, 63);
+    u8g2.drawLine(94, 1, 94, 22);
+    u8g2.drawLine(1, 23, 126, 23);
+
+    u8g2.drawXBM(103, rail_arrow, 3, 5, image_Zeil_Pfeil_bits);
+    u8g2.drawXBM(2, 27, 99, 34, image_Strecke_bits);
+
+    u8g2.setFont(u8g2_font_4x6_tr);
+
+    // Update Text if Active
+    if (triggerActive) {
+      u8g2.drawStr(64, 7, sensor_0_text);
+      u8g2.drawStr(64, 14, sensor_1_text);
+      u8g2.drawStr(64, 21, sensor_2_text);
+    }
+
+    // Always Update Numbers
+    char buf[8];
+
+    u8g2.drawStr(2, 21, "Sensor 2:");
+    u8g2.drawStr(2, 7, "Sensor 0:");
+    u8g2.drawStr(2, 14, "Sensor 1:");
+
+
+    itoa(sensor_2_wert, buf, 10);
+    u8g2.drawStr(38, 21, buf);
+
+    itoa(sensor_1_wert, buf, 10);
+    u8g2.drawStr(38, 14, buf);
+
+    itoa(sensor_0_wert, buf, 10);
+    u8g2.drawStr(38, 7, buf);
+
+    u8g2.drawXBM(12, 37, 7, 6, image_Sensor_Optisch_bits);
+    u8g2.drawXBM(56, 2, 5, 19, image_Pfeile_bits);
+
+    // Ausrufezeichen anzeigen / nicht anzeigen
+    if (exclamationState) {
+      u8g2.drawXBM(20, 34, 2, 8, image_Aktion_erkannt_bits);
+    }
+
+  } while (u8g2.nextPage());
 }
