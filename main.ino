@@ -12,9 +12,9 @@ Für später:
 -> trigger_switch();
 -> updateDisplay();
 
-Ablauf:
-1. Sensor 0 => Erkennt
-2. 
+
+Sensor Design:
+▣ ▣ ▣ => S1 S2 S0
 
 
 Auswertungen:
