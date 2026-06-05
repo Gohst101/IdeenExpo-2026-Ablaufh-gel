@@ -74,6 +74,7 @@ static const unsigned char image_Strecke_bits[] = { 0x00, 0x00, 0x00, 0x00, 0x00
 static const unsigned char image_Zeil_Pfeil_bits[] = { 0x04, 0x06, 0x07, 0x06, 0x04 };
 static const unsigned char image_Sensor_Optisch_bits[] = { 0x7f, 0x55, 0x7f, 0x7f, 0x63, 0x63 };
 
+
 void setup() {
   Serial.begin(115200);
   u8g2.begin();
@@ -318,5 +319,4 @@ void checkRailSwitchs() {
   Serial.println("====================");
   Serial.println("  Switches checked  ");
   Serial.println("====================");
-
 }
