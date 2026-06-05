@@ -42,8 +42,8 @@ U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0);
 #define switch_3_L 7
 
 // Sensoren
-#define sensor_0 14
-#define sensor_1 15
+#define sensor_0 15
+#define sensor_1 14
 #define sensor_2 16
 
 // Bildschirm Texte
@@ -66,6 +66,8 @@ int updateDisplayTime = 50; // Update Display
 unsigned long latestDisplayUpdate; // Letztes Display Update
 bool triggerActive = false; // Trigger an oder aus
 bool exclamationState = false; // Ausrufezeichen Status
+
+int testing_switch_delay = 500; // Pausen nach dem Schalten einer Weiche beim Start Test
 
 // Bitmaps
 static const unsigned char image_Aktion_erkannt_bits[] = { 0x03, 0x03, 0x03, 0x03, 0x03, 0x00, 0x03, 0x03 };
@@ -299,23 +301,23 @@ void checkRailSwitchs() {
   Serial.println("");
   Serial.println("");
   trigger_switch(switch_1_L);
-  delay(500);
+  delay(testing_switch_delay);
   trigger_switch(switch_1_R);
-  delay(500);
+  delay(testing_switch_delay);
   trigger_switch(switch_1_L);
-  delay(500);
+  delay(testing_switch_delay);
   trigger_switch(switch_2_L);
-  delay(500);
+  delay(testing_switch_delay);
   trigger_switch(switch_2_R);
-  delay(500);
+  delay(testing_switch_delay);
   trigger_switch(switch_2_L);
-  delay(500);
+  delay(testing_switch_delay);
   trigger_switch(switch_3_L);
-  delay(500);
+  delay(testing_switch_delay);
   trigger_switch(switch_3_R);
-  delay(500);
+  delay(testing_switch_delay);
   trigger_switch(switch_3_L);
-  delay(500);
+  delay(testing_switch_delay);
   Serial.println("====================");
   Serial.println("  Switches checked  ");
   Serial.println("====================");
