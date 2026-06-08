@@ -8,17 +8,17 @@ Funktion:
 4. Gebe informationen auf dem Display aus.
 
 Für später:
--> evaluation();
--> trigger_switch();
--> updateDisplay();
+-> evaluation(); // Auswertung der Daten wenn Sensor 0 Weiß erkennt
+-> trigger_switch(); // trigger_switch(pin) schaltet den pin an und aus
+-> updateDisplay(); // Aktuallisiert das Display
 
-Ablauf:
-1. Sensor 0 => Erkennt
-2. 
-
+Dinge die noch fehlen oder Falsch sind:
+- Sensor 0 muss Weiß und nicht Schwarz erkennen.
+- Wenn exakt der Mittelpunkt getroffen wird kann er keine Weichenoption finden. FIX: Füge = Zeichen zu den < und > Zeichen hinzu: =< und => (Könnte auch anders sein)
+- Beachte in Normalbetrieb fremdeinwirkungen
 
 Auswertungen:
-Sensor 1 dient zur erkennung wann ausgewertet werden soll.
+Sensor 0 dient zur erkennung wann ausgewertet werden soll.
 An + An = Weiche 1
 An + Aus = Weiche 2
 Aus + Aus = Weiche 3
@@ -53,14 +53,14 @@ char sensor_0_text[8] = "/";
 
 // Variablen für den Code
 int delaySwitchPowerTime = 20; // 20 Milisekunden
-int mittelwert = 300; // Mittelwert für Weißt - Schwarz (0 - 1023)
+int mittelwert = 120; // Mittelwert für Schwarz - Weiß (0 - 1023)
 int sensor_0_wert = 0; // Sensor 0
 int sensor_1_wert = 0; // Sensor 1
 int sensor_2_wert = 0; // Sensor 2
 
-int rail_arrow = 37; // 37 - 46 - 55 => Für den Bildschirm Pfeil welcher die Strecke anzeigt
+int rail_arrow = 37; // 28 - 37 - 46 - 55 => Für den Bildschirm Pfeil welcher die Strecke anzeigt
 
-int pause_time = 2000; // 500 Milisekunden
+int pause_time = 2000; // 2000 Milisekunden Pause nachdem ein Wagong erkannt wurde (Weichen Relay Schutz)
 unsigned long latest_trigger; // Letzter Trigger
 int updateDisplayTime = 50; // Update Display
 unsigned long latestDisplayUpdate; // Letztes Display Update
@@ -109,17 +109,19 @@ void setup() {
 
 void loop() {
   // Debug Prints
+  /*
   Serial.println("Sensor 0");
   Serial.println(analogRead(sensor_0));
   Serial.println("Sensor 1");
   Serial.println(analogRead(sensor_1));
   Serial.println("Sensor 2");
   Serial.println(analogRead(sensor_2));
-
+  */
   // Schaut ob Sensor 0 einen Wert hat.
-  // INFO: Benötigt einen weg während der Auswertung diesen Teil zu stoppen. => triggerActive
+  // INFO: Benötigt einen weg während der Auswertung diesen Teil zu stoppen. => triggerActive ✅
   sensor_0_wert = analogRead(sensor_0);
 
+  // Schaut ob Sensor 0 einen hohen wert hat => Hoher Wert = Weiß
   if (sensor_0_wert > mittelwert && !triggerActive) {
     triggerActive = true;
     exclamationState = true;
@@ -139,64 +141,6 @@ void loop() {
     updateDisplay();
     latestDisplayUpdate = millis();
   }
-}
-
-
-// Display Updaten
-void updateDisplay() {
-
-  u8g2.firstPage();
-  do {
-
-    u8g2.setFontMode(1);
-    u8g2.setBitmapMode(1);
-
-    // Outline
-    u8g2.drawLine(1, 63, 126, 63);
-    u8g2.drawLine(0, 0, 127, 0);
-    u8g2.drawLine(127, 1, 127, 63);
-    u8g2.drawLine(0, 1, 0, 63);
-    u8g2.drawLine(94, 1, 94, 22);
-    u8g2.drawLine(1, 23, 126, 23);
-
-    u8g2.drawXBM(103, rail_arrow, 3, 5, image_Zeil_Pfeil_bits);
-    u8g2.drawXBM(2, 27, 99, 34, image_Strecke_bits);
-
-    u8g2.setFont(u8g2_font_4x6_tr);
-
-    // Update Text if Active
-    if (triggerActive) {
-      u8g2.drawStr(64, 7, sensor_0_text);
-      u8g2.drawStr(64, 14, sensor_1_text);
-      u8g2.drawStr(64, 21, sensor_2_text);
-    }
-
-    // Always Update Numbers
-    char buf[8];
-
-    u8g2.drawStr(2, 21, "Sensor 2:");
-    u8g2.drawStr(2, 7, "Sensor 0:");
-    u8g2.drawStr(2, 14, "Sensor 1:");
-
-
-    itoa(sensor_2_wert, buf, 10);
-    u8g2.drawStr(38, 21, buf);
-
-    itoa(sensor_1_wert, buf, 10);
-    u8g2.drawStr(38, 14, buf);
-
-    itoa(sensor_0_wert, buf, 10);
-    u8g2.drawStr(38, 7, buf);
-
-    u8g2.drawXBM(12, 37, 7, 6, image_Sensor_Optisch_bits);
-    u8g2.drawXBM(56, 2, 5, 19, image_Pfeile_bits);
-
-    // Ausrufezeichen anzeigen / nicht anzeigen
-    if (exclamationState) {
-      u8g2.drawXBM(20, 34, 2, 8, image_Aktion_erkannt_bits);
-    }
-
-  } while (u8g2.nextPage());
 }
 
 // Auswertung
@@ -321,4 +265,61 @@ void checkRailSwitchs() {
   Serial.println("====================");
   Serial.println("  Switches checked  ");
   Serial.println("====================");
+}
+
+// Display Updaten
+void updateDisplay() {
+
+  u8g2.firstPage();
+  do {
+
+    u8g2.setFontMode(1);
+    u8g2.setBitmapMode(1);
+
+    // Outline
+    u8g2.drawLine(1, 63, 126, 63);
+    u8g2.drawLine(0, 0, 127, 0);
+    u8g2.drawLine(127, 1, 127, 63);
+    u8g2.drawLine(0, 1, 0, 63);
+    u8g2.drawLine(94, 1, 94, 22);
+    u8g2.drawLine(1, 23, 126, 23);
+
+    u8g2.drawXBM(103, rail_arrow, 3, 5, image_Zeil_Pfeil_bits);
+    u8g2.drawXBM(2, 27, 99, 34, image_Strecke_bits);
+
+    u8g2.setFont(u8g2_font_4x6_tr);
+
+    // Update Text if Active
+    if (triggerActive) {
+      u8g2.drawStr(64, 7, sensor_0_text);
+      u8g2.drawStr(64, 14, sensor_1_text);
+      u8g2.drawStr(64, 21, sensor_2_text);
+    }
+
+    // Always Update Numbers
+    char buf[8];
+
+    u8g2.drawStr(2, 21, "Sensor 2:");
+    u8g2.drawStr(2, 7, "Sensor 0:");
+    u8g2.drawStr(2, 14, "Sensor 1:");
+
+
+    itoa(sensor_2_wert, buf, 10);
+    u8g2.drawStr(38, 21, buf);
+
+    itoa(sensor_1_wert, buf, 10);
+    u8g2.drawStr(38, 14, buf);
+
+    itoa(sensor_0_wert, buf, 10);
+    u8g2.drawStr(38, 7, buf);
+
+    u8g2.drawXBM(12, 37, 7, 6, image_Sensor_Optisch_bits);
+    u8g2.drawXBM(56, 2, 5, 19, image_Pfeile_bits);
+
+    // Ausrufezeichen anzeigen / nicht anzeigen
+    if (exclamationState) {
+      u8g2.drawXBM(20, 34, 2, 8, image_Aktion_erkannt_bits);
+    }
+
+  } while (u8g2.nextPage());
 }
