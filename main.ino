@@ -13,9 +13,7 @@ Für später:
 -> updateDisplay(); // Aktuallisiert das Display
 
 Dinge die noch fehlen oder Falsch sind:
-- Sensor 0 muss Weiß und nicht Schwarz erkennen.
-- Wenn exakt der Mittelpunkt getroffen wird kann er keine Weichenoption finden. FIX: Füge = Zeichen zu den < und > Zeichen hinzu: =< und => (Könnte auch anders sein)
-- Beachte in Normalbetrieb fremdeinwirkungen
+- Problem: Wenn ein Wagong schneller ist als sonst oder Sensor 0 zu spät weiß erkennt dann verändern sich die werte von Sensor 1 und Sensor 2
 
 Auswertungen:
 Sensor 0 dient zur erkennung wann ausgewertet werden soll.
@@ -53,7 +51,7 @@ char sensor_0_text[8] = "/";
 
 // Variablen für den Code
 int delaySwitchPowerTime = 20; // 20 Milisekunden
-int mittelwert = 120; // Mittelwert für Schwarz - Weiß (0 - 1023)
+int mittelwert = 500; // Mittelwert für Schwarz - Weiß (0 - 1023)
 int sensor_0_wert = 0; // Sensor 0
 int sensor_1_wert = 0; // Sensor 1
 int sensor_2_wert = 0; // Sensor 2
@@ -62,12 +60,12 @@ int rail_arrow = 37; // 28 - 37 - 46 - 55 => Für den Bildschirm Pfeil welcher d
 
 int pause_time = 2000; // 2000 Milisekunden Pause nachdem ein Wagong erkannt wurde (Weichen Relay Schutz)
 unsigned long latest_trigger; // Letzter Trigger
-int updateDisplayTime = 50; // Update Display
+int updateDisplayTime = 1; // Update Display
 unsigned long latestDisplayUpdate; // Letztes Display Update
 bool triggerActive = false; // Trigger an oder aus
 bool exclamationState = false; // Ausrufezeichen Status
 
-int testing_switch_delay = 500; // Pausen nach dem Schalten einer Weiche beim Start Test
+int testing_switch_delay = 1000; // Pausen nach dem Schalten einer Weiche beim Start Test
 
 // Bitmaps
 static const unsigned char image_Aktion_erkannt_bits[] = { 0x03, 0x03, 0x03, 0x03, 0x03, 0x00, 0x03, 0x03 };
@@ -108,25 +106,39 @@ void setup() {
 }
 
 void loop() {
-  // Debug Prints
-  /*
-  Serial.println("Sensor 0");
-  Serial.println(analogRead(sensor_0));
-  Serial.println("Sensor 1");
-  Serial.println(analogRead(sensor_1));
-  Serial.println("Sensor 2");
-  Serial.println(analogRead(sensor_2));
-  */
   // Schaut ob Sensor 0 einen Wert hat.
   // INFO: Benötigt einen weg während der Auswertung diesen Teil zu stoppen. => triggerActive ✅
   sensor_0_wert = analogRead(sensor_0);
+  /*
+  sensor_1_wert = analogRead(sensor_1);
+  sensor_2_wert = analogRead(sensor_2);
+
+  Serial.print("S1=");
+  Serial.print(sensor_1_wert);
+  Serial.print(" | S2=");
+  Serial.print(sensor_2_wert);
+  Serial.print(" | S0=");
+  Serial.println(sensor_0_wert);
+  */
 
   // Schaut ob Sensor 0 einen hohen wert hat => Hoher Wert = Weiß
-  if (sensor_0_wert > mittelwert && !triggerActive) {
+  if (sensor_0_wert > 500 && !triggerActive) {
+    // Werte Auslesen
+    sensor_1_wert = analogRead(sensor_1);
+    sensor_2_wert = analogRead(sensor_2);
+
     triggerActive = true;
     exclamationState = true;
     latest_trigger = millis();
 
+/*
+    Serial.println("Sensor 0");
+    Serial.println(analogRead(sensor_0));
+    Serial.println("Sensor 1");
+    Serial.println(analogRead(sensor_1));
+    Serial.println("Sensor 2");
+    Serial.println(analogRead(sensor_2));
+*/
     evaluation();
   }
 
@@ -136,7 +148,6 @@ void loop() {
     exclamationState = false;
   }
 
-
   if (millis() - latestDisplayUpdate >= updateDisplayTime) {
     updateDisplay();
     latestDisplayUpdate = millis();
@@ -145,10 +156,6 @@ void loop() {
 
 // Auswertung
 void evaluation() {
-  // Werte Auslesen
-  sensor_1_wert = analogRead(sensor_1);
-  sensor_2_wert = analogRead(sensor_2);
-
   // Serial Output
   Serial.println("");
   Serial.println("");
@@ -179,7 +186,7 @@ void evaluation() {
     strcpy(sensor_2_text, "Weiss");
     rail_arrow = 28;
     trigger_switch(switch_1_L);
-    trigger_switch(switch_3_L);
+    trigger_switch(switch_2_L);
     return;
   } else if (sensor_1_wert > mittelwert && sensor_2_wert < mittelwert) {  // HIGH - LOW || Weiß - Schwarz
     Serial.println("INFO - Weiß + Schwarz - Option 2");
@@ -188,7 +195,7 @@ void evaluation() {
     strcpy(sensor_2_text, "Schwarz");
     rail_arrow = 37;
     trigger_switch(switch_1_L);
-    trigger_switch(switch_3_R);
+    trigger_switch(switch_2_R);
     return;
   } else if (sensor_1_wert < mittelwert && sensor_2_wert < mittelwert) {  // LOW - LOW || Schwarz - Schwarz
     Serial.println("INFO - Schwarz + Schwarz - Option 3");
@@ -197,7 +204,7 @@ void evaluation() {
     strcpy(sensor_2_text, "Schwarz");
     rail_arrow = 46;
     trigger_switch(switch_1_R);
-    trigger_switch(switch_3_L);
+    trigger_switch(switch_3_R);
     return;
   } else if (sensor_1_wert < mittelwert && sensor_2_wert > mittelwert) {  // LOW - HIGH || Schwarz - Weiß
     Serial.println("INFO - Schwarz + Weiß - Option 4");
@@ -206,7 +213,7 @@ void evaluation() {
     strcpy(sensor_2_text, "Weiss");
     rail_arrow = 55;
     trigger_switch(switch_1_R);
-    trigger_switch(switch_3_R);
+    trigger_switch(switch_3_L);
     return;
   } else {
     Serial.println("ERROR - Es konnte zu den Sensordaten keine Weichenkombination gefunden werden.");
@@ -244,23 +251,23 @@ void checkRailSwitchs() {
   Serial.println("");
   Serial.println("");
   Serial.println("");
-  trigger_switch(switch_1_L);
-  delay(testing_switch_delay);
   trigger_switch(switch_1_R);
   delay(testing_switch_delay);
   trigger_switch(switch_1_L);
   delay(testing_switch_delay);
-  trigger_switch(switch_2_L);
+  trigger_switch(switch_1_R);
   delay(testing_switch_delay);
   trigger_switch(switch_2_R);
   delay(testing_switch_delay);
   trigger_switch(switch_2_L);
   delay(testing_switch_delay);
-  trigger_switch(switch_3_L);
+  trigger_switch(switch_2_R);
   delay(testing_switch_delay);
   trigger_switch(switch_3_R);
   delay(testing_switch_delay);
   trigger_switch(switch_3_L);
+  delay(testing_switch_delay);
+  trigger_switch(switch_3_R);
   delay(testing_switch_delay);
   Serial.println("====================");
   Serial.println("  Switches checked  ");
